@@ -1,0 +1,46 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"bookstore.example.com/internal/localizer" // New import
+
+	"github.com/labstack/echo/v4"
+)
+
+func handleEcho(c echo.Context)(err error){
+	// Initialize a new Localizer based on the locale ID in the URL.
+	l, ok := localizer.Get(c.Param("local"))
+	if !ok {
+		return echo.NewHTTPError(http.StatusNotFound, "")
+	}
+
+	var totalBookCount = 1_252_794
+	var result string
+	// Update these to use the new Translate() method.
+	result += l.Translate("Welcome!\n")
+	result += l.Translate("%d books available\n", totalBookCount)
+
+	// Add an additional "Launching soon!" message.
+	result += l.Translate("Launching soon!\n")
+	return c.String(http.StatusOK, result)
+}
+
+func handlePAT(w http.ResponseWriter, r *http.Request) {
+	// Initialize a new Localizer based on the locale ID in the URL.
+	l, ok := localizer.Get(r.URL.Query().Get(":locale"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	var totalBookCount = 1_252_794
+
+	// Update these to use the new Translate() method.
+	fmt.Fprintln(w, l.Translate("Welcome!"))
+	fmt.Fprintln(w, l.Translate("%d books available", totalBookCount))
+
+	// Add an additional "Launching soon!" message.
+	fmt.Fprintln(w, l.Translate("Launching soon!"))
+}
